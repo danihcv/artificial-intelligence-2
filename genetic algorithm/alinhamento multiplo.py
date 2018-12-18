@@ -3,6 +3,12 @@ beta = int(input())
 gama = int(input())
 
 
+class DNA:
+    def __init__(self, sequence):
+        self.current_gap = -1
+        self.sequence = sequence
+
+
 def value_of_pair(seq1, seq2):
     x = y = z = 0
 
@@ -19,11 +25,27 @@ def value_of_pair(seq1, seq2):
     return alfa * x + beta * y + gama * z
 
 
-def value_of_state(sequences):
+def value_of_state(DNAs):
     total = 0
 
-    for i in range(len(sequences)):
-        for j in range(i + 1, len(sequences)):
-            total = value_of_pair(sequences[i], sequences[j])
+    for i in range(len(DNAs)):
+        for j in range(i + 1, len(DNAs)):
+            total = value_of_pair(DNAs[i].sequence, DNAs[j].sequence)
 
     return total
+
+
+dna_list = []
+biggest_sequence = 0
+while True:
+    try:
+        seq = input()
+        dna_list += [DNA(seq)]
+
+        if len(seq) > biggest_sequence:
+            biggest_sequence = len(seq)
+    except:
+        break
+
+print(dna_list)
+

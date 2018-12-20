@@ -1,6 +1,3 @@
-4
-0
--1
 AATC
 CT
 TAC

@@ -1,10 +1,6 @@
 import sys
 from random import randrange
 
-alfa = int(input())
-beta = int(input())
-gama = int(input())
-
 
 def value_of_pair(seq1, seq2, size):
     x = y = z = 0
@@ -67,6 +63,9 @@ while True:
     except:
         break
 
+alfa = standard_size
+beta = 0
+gama = -1
 score = value_of_state(dna_list, standard_size)
 turns = generate_turns(len(dna_list), [])
 # pos = randrange(0, floor_size)

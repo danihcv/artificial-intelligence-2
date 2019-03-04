@@ -52,6 +52,23 @@ def evaluate(chromosome):
             is_monster = True
 
     # ToDo identifying cycles
+    visited = {}
+    for v in vertices:
+        visited[v] = 0
+
+    curr_v = vertices[0]
+    for _ in vertices:
+        visited[curr_v] = True
+        for v in vertices:
+            if v != curr_v:
+                idx = edges.index(curr_v + v)
+                if chromosome.config[idx]:
+                    curr_v = v
+                    break
+
+    if curr_v != vertices[0]:
+        score -= 999
+        is_monster = True
 
     return score, is_monster
 

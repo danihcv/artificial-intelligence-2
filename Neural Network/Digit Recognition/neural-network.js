@@ -69,8 +69,8 @@ class NeuralNetwork {
             gradients.multiply(this.learningRate);
 
             // Calculate deltas
-            let hiddenT = Matrix.transpose(i === 0 ? inputs : outputs[i - 1]);
-            let weightDeltas = Matrix.multiply(gradients, hiddenT);
+            let inputsT = Matrix.transpose(i === 0 ? inputs : outputs[i - 1]);
+            let weightDeltas = Matrix.multiply(gradients, inputsT);
 
             // Adjust the weights by deltas
             this.weights[i].add(weightDeltas);

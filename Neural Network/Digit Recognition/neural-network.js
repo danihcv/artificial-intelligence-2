@@ -1,10 +1,22 @@
 class NeuralNetwork {
     constructor(inputNodes, outputNodes) {
-        this.layersNodes = [inputNodes, outputNodes];
+        if (typeof inputNodes === 'number') {
+            this.layersNodes = [inputNodes, outputNodes];
 
-        this.bootstrapWeigths();
-        this.setLearningRate();
-        this.setActivationFunction();
+            this.bootstrapWeigths();
+            this.setLearningRate();
+            this.setActivationFunction();
+        } else {
+            let data = inputNodes;
+            let activationFunc = outputNodes === undefined ? sigmoid : outputNodes;
+
+            this.layersNodes = data.layersNodes;
+            this.weights = data.weights;
+            this.bias = data.bias;
+            this.learningRate = data.learningRate;
+
+            this.setActivationFunction(activationFunc);
+        }
     }
 
     bootstrapWeigths() {
@@ -77,6 +89,15 @@ class NeuralNetwork {
             // Adjust the bias by its deltas (which is just the gradients)
             this.bias[i].add(gradients);
         }
+    }
+
+    serialize() {
+        return JSON.stringify(this);
+    }
+
+    static deserialize(data) {
+        data = JSON.parse(data);
+        return new NeuralNetwork(data);
     }
 }
 

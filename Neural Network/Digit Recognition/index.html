@@ -1,22 +1,76 @@
 <!DOCTYPE html>
 <html lang="">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rede Neural - Reconhecimento de Dígitos</title>
+    <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
     <style>
-      body {
-        padding: 0;
-        margin: 0;
-      }
+        body {
+            padding: 0;
+            margin: 0;
+            font-size: 30pt;
+            font-family: Abel, serif;
+            text-align: center;
+            font-weight: bold;
+            background: aliceblue;
+        }
+
+        h1 {
+            color: #0081ff;
+        }
+        button,
+        label {
+            font-size: 20pt;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .wrong {
+            color: red;
+        }
+
+        div.settings {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        input#brushSize {
+            width: 200px;
+        }
+
+        button {
+            /*border: navajowhite;*/
+            padding: 12px 30px;
+        }
     </style>
     <script src="lib/p5.min.js"></script>
     <script src="addons/p5.dom.min.js"></script>
     <script src="addons/p5.sound.min.js"></script>
     <script src="lib/matrix.js"></script>
+    <script src="lib/mnist/mnist.js"></script>
     <script src="neural-network.js"></script>
     <script src="sketch.js"></script>
-  </head>
-  <body>
-  </body>
+</head>
+<body>
+    <h1>Reconhecedor de Dígitos 2000</h1>
+    <div id="container"></div>
+
+    <div class="settings">
+        <label>Tamanho</label>
+        <input id="brushSize" type="range" min="10" max="25" value="16">
+    </div>
+    <button onclick="guessUserDigit(true)">Adivinhar!</button>
+
+    <p id="info">
+        Label: <span id="label"></span>
+        Guess: <span id="guess"></span>
+        <br/>
+        Real Time User Guess: <span id="userGuess"></span>
+    </p>
+</body>
 </html>

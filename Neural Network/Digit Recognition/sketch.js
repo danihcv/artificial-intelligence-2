@@ -1,10 +1,11 @@
 const desiredDigits = [2, 5, 8], trainsPerFrame = 10;
 
 let mnist, brain, trainIndex = 0, isLooping = true, userDigit, times = 0, trainImage;
-let trainImages = [], trainLabels = [], canTrain = false, hasUserData = false;
+let trainImages = [], trainLabels = [], canTrain = false, hasUserData = false, clickedOnCanvas = false;
 
 function setup() {
-    createCanvas(400, 200).parent('container');
+    let canvas = createCanvas(400, 200).parent('container');
+    canvas.mousePressed(() => clickedOnCanvas = true);
     userDigit = createGraphics(200, 200);
     trainImage = createImage(28, 28);
 
@@ -24,7 +25,6 @@ function setup() {
         }
         console.log(trainImages);
         console.log(trainLabels);
-        canTrain = true;
     });
 }
 
@@ -112,10 +112,11 @@ function train(drawTrainImage = false) {
 }
 
 function keyPressed() {
-    if (key === 'r') {
+    if (key === 'r' || key === 'R') {
         hasUserData = false;
+        clickedOnCanvas = false;
         userDigit.background(0);
-    } else if (key === 'p') {
+    } else if (key === 'p' || key === 'P') {
         canTrain = !canTrain;
     } else if (key === ' ') {
         guessUserDigit(true);
@@ -123,7 +124,7 @@ function keyPressed() {
 }
 
 function guessUserDigit(popupGuess = false) {
-    if (hasUserData) {
+    if (hasUserData && clickedOnCanvas) {
         let inputs = [];
         let img = userDigit.get();
         img.resize(28, 28);
@@ -141,5 +142,25 @@ function guessUserDigit(popupGuess = false) {
         }
     } else {
         select('#userGuess').html('_')
+    }
+}
+
+function importNN() {
+    let file = select('#import').value().split('\\');
+    file = file[file.length - 1];
+
+    if (file !== '' && file !== undefined && file !== null) {
+        let xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', './' + file, true);
+        xobj.onreadystatechange = function () {
+            if (xobj.readyState === 4 && xobj.status === 200) {
+                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+                brain = NeuralNetwork.deserialize(xobj.responseText);
+            }
+        };
+        xobj.send(null);
+    } else {
+        alert('Falha ao importar!')
     }
 }

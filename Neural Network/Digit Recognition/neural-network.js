@@ -11,8 +11,17 @@ class NeuralNetwork {
             let activationFunc = outputNodes === undefined ? sigmoid : outputNodes;
 
             this.layersNodes = data.layersNodes;
-            this.weights = data.weights;
-            this.bias = data.bias;
+
+            this.weights = [];
+            for (let m of data.weights) {
+                this.weights.push(new Matrix(m.rows, m.cols).map((el, i, j) => m.data[i][j]));
+            }
+
+            this.bias = [];
+            for (let m of data.bias) {
+                this.bias.push(new Matrix(m.rows, m.cols).map((el, i, j) => m.data[i][j]));
+            }
+
             this.learningRate = data.learningRate;
 
             this.setActivationFunction(activationFunc);

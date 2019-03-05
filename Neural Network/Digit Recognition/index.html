@@ -19,9 +19,10 @@
         h1 {
             color: #0081ff;
         }
-        button,
+
         label {
             font-size: 20pt;
+            margin-top: 10px;
         }
 
         .correct {
@@ -33,19 +34,27 @@
         }
 
         div.settings {
+            padding: 15px;
+        }
+
+        div.option:not(last-child) {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px;
+            margin-bottom: 10px;
         }
 
         input#brushSize {
             width: 200px;
         }
 
+        input#import {
+            margin: 5px;
+        }
+
         button {
-            /*border: navajowhite;*/
-            padding: 12px 30px;
+            font-size: 15pt;
+            padding: 5px 15px;
         }
     </style>
     <script src="lib/p5.min.js"></script>
@@ -61,10 +70,17 @@
     <div id="container"></div>
 
     <div class="settings">
-        <label>Tamanho</label>
-        <input id="brushSize" type="range" min="10" max="25" value="16">
+        <div class="option">
+            <label>Tamanho</label>
+            <input id="brushSize" type="range" min="10" max="25" value="16">
+        </div>
+
+        <div class="option">
+            <label>Importar RN</label>
+            <input id="import" type="file" accept="application/json">
+            <button onclick="importNN()">Importar!</button>
+        </div>
     </div>
-    <button onclick="guessUserDigit(true)">Adivinhar!</button>
 
     <p id="info">
         Label: <span id="label"></span>

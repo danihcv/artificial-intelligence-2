@@ -1,21 +1,26 @@
-const desiredDigits = [2, 5, 8], trainsPerFrame = 10;
+const desiredDigits = [2, 5, 8], trainsPerFrame = 10, canvasWidth = 200, canvasHeight = 200;
 
-let mnist, brain, trainIndex = 0, isLooping = true, userDigit, times = 0, trainImage;
-let trainImages = [], trainLabels = [], canTrain = false, hasUserData = false, clickedOnCanvas = false;
+let mnist, brain, trainedBrain, isLooping = true, userDigit, canvasContainer, trainedTimes = 0, trainedCorrect = 0;
+let trainImages = [], trainLabels = [], canTrain = false, hasUserData = false;
+
+function createNeuralNetwork() {
+    const nn = new NeuralNetwork(784, desiredDigits.length);
+    nn.addHiddenLayer(16);
+    nn.addHiddenLayer(16);
+    return nn;
+}
 
 function setup() {
-    let canvas = createCanvas(400, 200).parent('container');
-    canvas.mousePressed(() => clickedOnCanvas = true);
+    canvasContainer = document.getElementsByClassName('container')[0];
+    createCanvas(canvasWidth, canvasHeight).parent('canvas');
     userDigit = createGraphics(200, 200);
-    trainImage = createImage(28, 28);
 
-    brain = new NeuralNetwork(784, desiredDigits.length);
-    brain.addHiddenLayer(16);
-    brain.addHiddenLayer(16);
+    brain = createNeuralNetwork();
+
+    loadJSON("trained-nn.json", response => trainedBrain = NeuralNetwork.deserialize(JSON.stringify(response)));
 
     loadMNIST((data) => {
         mnist = data;
-        console.log(mnist);
 
         for (let i = 0; i < mnist.train_images.length; i++) {
             if (desiredDigits.includes(mnist.train_labels[i])) {
@@ -23,8 +28,6 @@ function setup() {
                 trainLabels.push(mnist.train_labels[i]);
             }
         }
-        console.log(trainImages);
-        console.log(trainLabels);
     });
 }
 
@@ -33,23 +36,23 @@ function draw() {
 
     if (canTrain && mnist) {
         for (let i = 0; i < trainsPerFrame; i++) {
-            trainIndex = Math.ceil(random(trainImages.length - 1));
-            train(i === 0);
+            const trainIndex = Math.ceil(random(trainImages.length - 1));
+            train(trainIndex);
         }
     }
 
     guessUserDigit();
 
     image(userDigit, 0, 0);
-    if (mouseIsPressed) {
+    if (mouseIsPressed && 0 <= mouseX && mouseX <= canvasWidth && 0 <= mouseY && mouseY <= canvasHeight) {
         hasUserData = true;
         userDigit.stroke(255);
         userDigit.strokeWeight(select('#brushSize').value());
         userDigit.line(mouseX, mouseY, pmouseX, pmouseY);
+        select('body').elt.classList.add('no-scroll');
+    } else {
+        select('body').elt.classList.remove('no-scroll');
     }
-
-    stroke(255);
-    line(200, 0, 200, 200);
 }
 
 function getAnswer(outputs) {
@@ -63,68 +66,41 @@ function getAnswer(outputs) {
     return desiredDigits[index];
 }
 
-function train(drawTrainImage = false) {
+function train(trainIndex) {
     try {
+        trainedTimes++;
+        let label = trainLabels[trainIndex];
+
         let inputs = [];
-
-        if (drawTrainImage)
-            trainImage.loadPixels();
-
         for (let i = 0; i < 784; i++) {
             let bright = trainImages[trainIndex][i];
             inputs[i] = bright / 255;
-
-            if (drawTrainImage) {
-                let index = i * 4;
-                trainImage.pixels[index] = bright;
-                trainImage.pixels[index + 1] = bright;
-                trainImage.pixels[index + 2] = bright;
-                trainImage.pixels[index + 3] = 255;
-            }
-        }
-
-        if (drawTrainImage) {
-            trainImage.updatePixels();
-            image(trainImage, 200, 0, 200, height);
-        }
-
-        let label = trainLabels[trainIndex];
-        let guess = getAnswer(brain.predict(inputs));
-
-        select('#label').html(label);
-        select('#guess').html(guess);
-
-        if (label === guess) {
-            select('#guess').class('correct');
-        } else {
-            select('#guess').class('wrong');
         }
 
         let targets = Array(desiredDigits.length).fill(0);
         targets[desiredDigits.findIndex((el) => el === label)] = 1;
 
         brain.train(inputs, targets);
-        console.log('trained', ++times + '/' + trainImages.length, 'times. trandIndex:', trainIndex);
+
+        let guess = getAnswer(brain.predict(inputs));
+        if (label === guess) {
+            trainedCorrect++;
+        }
+
+        const accuracy = (trainedCorrect / trainedTimes) * 100;
+        canvasContainer.setAttribute('data-train', 'Training\nAccuracy:\n' + accuracy.toFixed(2) + '%');
+
+        if (trainedTimes === 60 * trainsPerFrame) {
+            trainedTimes = trainedCorrect = 0;
+        }
     } catch (e) {
         console.error('trainIndex:', trainIndex, 'trainImages.length', trainImages.length);
         console.error(e);
     }
 }
 
-function keyPressed() {
-    if (key === 'r' || key === 'R') {
-        hasUserData = false;
-        clickedOnCanvas = false;
-        userDigit.background(0);
-    } else if (key === 'p' || key === 'P') {
-        canTrain = !canTrain;
-    } else if (key === ' ') {
-        guessUserDigit(true);
-    }
-}
-
-function guessUserDigit(popupGuess = false) {
-    if (hasUserData && clickedOnCanvas) {
+function guessUserDigit() {
+    if (hasUserData) {
         let inputs = [];
         let img = userDigit.get();
         img.resize(28, 28);
@@ -135,32 +111,44 @@ function guessUserDigit(popupGuess = false) {
 
         let guess = getAnswer(brain.predict(inputs));
 
-        if (popupGuess) {
-            alert('Eu acho que é um... ' + guess + '!');
-        } else {
-            select('#userGuess').html(guess);
-        }
-    } else {
-        select('#userGuess').html('_')
+        canvasContainer.setAttribute('data-guess', 'I guess it is a...\n' + guess);
+        canvasContainer.classList.add('drawing');
     }
 }
 
-function importNN() {
-    let file = select('#import').value().split('\\');
-    file = file[file.length - 1];
+function resetDrawing() {
+    hasUserData = false;
+    canvasContainer.classList.remove('drawing');
+    userDigit.background(0);
+}
 
-    if (file !== '' && file !== undefined && file !== null) {
-        let xobj = new XMLHttpRequest();
-        xobj.overrideMimeType("application/json");
-        xobj.open('GET', './' + file, true);
-        xobj.onreadystatechange = function () {
-            if (xobj.readyState === 4 && xobj.status === 200) {
-                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
-                brain = NeuralNetwork.deserialize(xobj.responseText);
-            }
-        };
-        xobj.send(null);
+function switchNeuralNetwork() {
+    const useTrained = select('#useTrainedNN').checked();
+
+    if (useTrained) {
+        brain = trainedBrain;
     } else {
-        alert('Falha ao importar!')
+        brain = createNeuralNetwork();
     }
+}
+
+function switchTraining() {
+    canTrain = !canTrain;
+
+    const btnTraining = select('#btnTraining');
+    const checkboxTrained = select('#useTrainedNN');
+    let action;
+    if (canTrain) {
+        canvasContainer.classList.add('training');
+        action = 'Stop';
+        btnTraining.addClass('stop');
+        checkboxTrained.attribute('disabled', '');
+    } else {
+        canvasContainer.classList.remove('training');
+        action = 'Start';
+        btnTraining.removeClass('stop');
+        checkboxTrained.removeAttribute('disabled');
+    }
+
+    btnTraining.html(action + ' training');
 }
